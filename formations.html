@@ -1,0 +1,67 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Catalogue · NATAN Consulting</title>
+<meta name="description" content="Formations, ateliers, supports et exercices pratiques NATAN Consulting sur l'IA, pour cabinets comptables et TPE.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+<a class="skip" href="#contenu">Aller au contenu</a>
+<header id="site-header"></header>
+<main id="contenu">
+  <section>
+    <div class="wrap">
+      <p class="eyebrow">Catalogue</p>
+      <h1>Ce que vous pouvez <span class="c">apprendre</span> ici.</h1>
+      <p class="sub">Chaque offre a sa fiche de transparence : qui l'a conçue, qui l'anime, ce que vous saurez faire à la fin.</p>
+
+      <div class="filters" role="group" aria-label="Filtrer par type" id="f-type" style="margin-top:32px"></div>
+      <div class="filters" role="group" aria-label="Filtrer par public" id="f-public"></div>
+      <div class="grid g3" id="liste" aria-live="polite"></div>
+      <p class="empty" id="vide" hidden>Aucune offre ne correspond à ce filtre.</p>
+    </div>
+  </section>
+</main>
+<footer id="site-footer"></footer>
+<script src="js/config.js"></script>
+<script src="js/catalogue.js"></script>
+<script src="js/main.js"></script>
+<script>
+  var etat = { type: "tous", public: "tous" };
+
+  function chips(cible, cle, valeurs) {
+    var zone = $(cible);
+    [["tous", "Tous"]].concat(Object.keys(valeurs).map(function (k) { return [k, valeurs[k]]; })).forEach(function (kv) {
+      var b = el("button", { class: "chip", type: "button", text: kv[1], "aria-pressed": String(etat[cle] === kv[0]) });
+      b.addEventListener("click", function () {
+        etat[cle] = kv[0];
+        zone.querySelectorAll(".chip").forEach(function (c) { c.setAttribute("aria-pressed", "false"); });
+        b.setAttribute("aria-pressed", "true");
+        rendre();
+      });
+      zone.appendChild(b);
+    });
+  }
+
+  function rendre() {
+    var liste = $("#liste");
+    liste.textContent = "";
+    var vus = CATALOGUE.filter(function (o) {
+      return (etat.type === "tous" || o.type === etat.type) &&
+             (etat.public === "tous" || o.publics.indexOf(etat.public) > -1 || o.publics.indexOf("tous") > -1);
+    });
+    vus.forEach(function (o) { liste.appendChild(offerCard(o)); });
+    $("#vide").hidden = vus.length > 0;
+  }
+
+  chips("#f-type", "type", TYPES);
+  chips("#f-public", "public", { cabinets: PUBLICS.cabinets, tpe: PUBLICS.tpe });
+  rendre();
+</script>
+</body>
+</html>

@@ -1,0 +1,89 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Six questions avant d'acheter une formation IA · NATAN Consulting</title>
+<meta name="description" content="Outil gratuit et imprimable : six questions à poser à tout organisme avant de financer une formation à l'IA.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+<a class="skip" href="#contenu">Aller au contenu</a>
+<header id="site-header"></header>
+<main id="contenu">
+  <section>
+    <div class="wrap">
+      <p class="eyebrow">Outil gratuit</p>
+      <h1>Six questions avant d'acheter une <span class="c">formation IA</span>.</h1>
+      <p class="sub">Posez-les au prestataire, notez ses réponses. Si trois restent floues, vous avez votre réponse. Valable pour n'importe quel organisme, NATAN compris.</p>
+      <label style="display:block;max-width:420px;margin:24px 0">Formation ou prestataire évalué
+        <input id="nom" placeholder="Nom de l'organisme ou de la formation">
+      </label>
+      <div id="qs"></div>
+      <div class="result" id="res" aria-live="polite"><p class="muted">Répondez aux six questions pour voir votre lecture.</p></div>
+      <p class="no-print" style="margin-top:24px"><button class="btn ghost" type="button" onclick="window.print()">Imprimer la fiche</button></p>
+    </div>
+  </section>
+</main>
+<footer id="site-footer"></footer>
+<script src="js/config.js"></script>
+<script src="js/main.js"></script>
+<script>
+(function () {
+  var Q = [
+    ["Qui a conçu le contenu ?", "Un nom, une expérience, et la possibilité de le rencontrer. « Notre partenaire » n'est pas une réponse."],
+    ["Y a-t-il un formateur humain qui connaît mon métier ?", "Ou seulement des vidéos et un tableau de bord ? Former un assistant administratif n'a presque rien à voir avec former une DRH."],
+    ["L'apprenant est-il suivi individuellement ?", "Selon son niveau de départ et son métier, ou le même parcours pour tous."],
+    ["Quelles compétences saura-t-il mettre en œuvre ?", "Écrites à l'avance, en verbes d'action. « Sensibilisation » ne compte pas."],
+    ["Quel est le taux de réussite, et comment est-il mesuré ?", "Session par session, avec la méthode de calcul. Pas un chiffre global sans source."],
+    ["Qui répond si la formation ne tient pas ses promesses ?", "Un interlocuteur identifié, pas un formulaire. Et savoir qui, dans la chaîne de vente, a réellement l'expertise du sujet."]
+  ];
+  var rep = store.get("six", {});
+  var zone = $("#qs"), nom = $("#nom");
+  nom.value = store.get("six-nom", "");
+  nom.addEventListener("input", function () { store.set("six-nom", nom.value); });
+
+  var VALEURS = [["claire", "Réponse claire", 2], ["floue", "Réponse floue", 1], ["aucune", "Pas de réponse", 0]];
+
+  function bilan() {
+    var res = $("#res"), n = 0, score = 0, floues = 0;
+    Q.forEach(function (_, i) {
+      var v = rep[i];
+      if (v === undefined) return;
+      n++;
+      VALEURS.forEach(function (x) { if (x[0] === v) score += x[2]; });
+      if (v !== "claire") floues++;
+    });
+    res.textContent = "";
+    if (n < Q.length) { res.appendChild(el("p", { class: "muted", text: n + " réponse(s) sur " + Q.length + "." })); return; }
+    var cls = score >= 10 ? "pos" : score >= 6 ? "zero" : "neg";
+    var texte = score >= 10 ? "Le prestataire répond à l'essentiel. Vérifiez quand même les pièces."
+      : score >= 6 ? "Des zones d'ombre. Demandez les réponses par écrit avant de financer."
+      : "Trop de réponses manquantes. Ne financez pas avant d'avoir obtenu des réponses écrites.";
+    res.appendChild(el("p", { class: "big " + cls, text: score + " / 12" }));
+    res.appendChild(el("p", { text: floues + " question(s) sans réponse claire. " + texte }));
+  }
+
+  Q.forEach(function (q, i) {
+    var boutons = VALEURS.map(function (v) {
+      var b = el("button", { type: "button", text: v[1], "aria-pressed": String(rep[i] === v[0]), style: "min-width:auto" });
+      b.addEventListener("click", function () {
+        rep[i] = v[0]; store.set("six", rep);
+        boutons.forEach(function (x, j) { x.setAttribute("aria-pressed", String(VALEURS[j][0] === v[0])); });
+        bilan();
+      });
+      return b;
+    });
+    zone.appendChild(el("div", { class: "item" }, [
+      el("div", {}, [el("h3", { text: (i + 1) + ". " + q[0], style: "font-size:1.1rem;margin-bottom:4px" }), el("p", { class: "muted small", style: "margin:0", text: q[1] })]),
+      el("div", { class: "yn", role: "group", "aria-label": "Réponse à la question " + (i + 1) }, boutons)
+    ]));
+  });
+  bilan();
+})();
+</script>
+</body>
+</html>

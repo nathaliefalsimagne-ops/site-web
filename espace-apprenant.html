@@ -1,0 +1,203 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Espace apprenant · NATAN Consulting</title>
+<meta name="description" content="Parcours d'exercices pratiques NATAN : les trois piliers, un cas de cabinet, votre bilan SCORE.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+<a class="skip" href="#contenu">Aller au contenu</a>
+<header id="site-header"></header>
+<main id="contenu">
+  <section>
+    <div class="wrap">
+      <p class="eyebrow">Espace apprenant</p>
+      <h1>Votre parcours <span class="c">d'exercices</span>.</h1>
+      <p class="sub">Trois modules, une vingtaine de minutes chacun. Votre progression est conservée dans ce navigateur, sur cet appareil.</p>
+      <div class="progress" role="progressbar" aria-label="Progression" aria-valuemin="0" aria-valuemax="3" aria-valuenow="0" id="pb"><i id="pbi"></i></div>
+      <div class="tabs" role="tablist" id="tabs"></div>
+      <div id="panneau" role="tabpanel" tabindex="0"></div>
+    </div>
+  </section>
+</main>
+<footer id="site-footer"></footer>
+<script src="js/config.js"></script>
+<script src="js/main.js"></script>
+<script>
+(function () {
+  var QCM = [
+    { q: "La Convergence, c'est quoi ?",
+      o: ["Fusionner tous ses outils chez un seul éditeur", "Auditer RGPD, IA Act et NIS2 autour de la même table : un seul bouclier", "Attendre que la réglementation se stabilise"],
+      ok: 1, fb: "Trois textes, un seul sujet. Les auditer en silos, c'est payer trois fois pour regarder les mêmes données." },
+    { q: "La Souveraineté, c'est quoi ?",
+      o: ["Tout héberger soi-même", "Refuser tous les outils d'IA", "Maîtriser ses données, ses accès et ses fournisseurs"],
+      ok: 2, fb: "On peut utiliser des outils externes et rester souverain, à condition de savoir où vont les données et qui y accède." },
+    { q: "L'Opportunité, c'est quoi ?",
+      o: ["Une faille identifiée devient un levier de gouvernance", "Un argument pour vendre plus de logiciels", "Le droit de ne pas se mettre en conformité"],
+      ok: 0, fb: "La conformité n'est pas un frein, c'est une ceinture de sécurité pour accélérer." }
+  ];
+
+  var CAS = [
+    { q: "Un collaborateur colle le bilan d'un client dans un assistant d'IA grand public. Qui est en faute, lui ou vous ?",
+      o: ["Lui seul : il a désobéi", "Vous seul : c'est votre cabinet", "Les deux, mais pas au même niveau : il a agi, vous avez organisé (ou pas) le cadre", "Personne : l'outil est fait pour ça"],
+      ok: 2, fb: "Le geste est le sien, le cadre est le vôtre. Sans règle écrite, sans outil autorisé et sans accord avec le fournisseur, la responsabilité de l'organisation est engagée." },
+    { q: "Vous découvrez l'incident. Quel est le geste à plus fort effet de levier ?",
+      o: ["Sanctionner publiquement pour l'exemple", "Interdire tous les outils d'IA", "Cartographier les outils utilisés, faire signer une charte IA, obtenir un accord de traitement des données", "Acheter un nouvel outil et passer à autre chose"],
+      ok: 2, fb: "Ce sont des bascules : chacune transforme une exigence non couverte en ressource. Interdire en bloc pousse les usages dans l'ombre, et le Shadow IA grossit." }
+  ];
+
+  var BILAN = [
+    { t: "Les outils d'IA utilisés dans votre structure sont cartographiés et à jour.", k: "actif", b: true },
+    { t: "Une charte IA est signée par chaque collaborateur.", k: "actif", b: true },
+    { t: "Chaque fournisseur d'IA a signé un accord de traitement des données.", k: "actif", b: true },
+    { t: "Un référent IA est désigné et connu de l'équipe.", k: "actif" },
+    { t: "Vous savez où sont hébergées les données envoyées à vos outils d'IA.", k: "actif" },
+    { t: "Des collaborateurs utilisent des comptes d'IA personnels avec des données clients.", k: "passif" },
+    { t: "Un outil d'IA hébergé hors de l'Union reçoit des données sensibles sans analyse préalable.", k: "passif" },
+    { t: "Vos clients ne savent pas que l'IA intervient dans leur dossier.", k: "passif" },
+    { t: "Vous ne connaissez pas tous les sous-traitants qui touchent vos données.", k: "passif" },
+    { t: "Aucune procédure n'existe si des données clients sont collées dans un outil non autorisé.", k: "passif" }
+  ];
+
+  var MODULES = [
+    { id: "piliers", titre: "1. Les trois piliers" },
+    { id: "cas", titre: "2. Cas de cabinet" },
+    { id: "bilan", titre: "3. Votre bilan SCORE" }
+  ];
+
+  var fait = store.get("fait", {});
+  var actif = MODULES[0].id;
+
+  function marquer(id) {
+    fait[id] = true; store.set("fait", fait); majTabs();
+  }
+
+  function majTabs() {
+    var n = 0, zone = $("#tabs");
+    zone.textContent = "";
+    MODULES.forEach(function (m) {
+      if (fait[m.id]) n++;
+      var b = el("button", { class: "tab", role: "tab", type: "button", "aria-selected": String(m.id === actif), text: m.titre });
+      if (fait[m.id]) b.appendChild(el("span", { class: "done", text: "terminé" }));
+      b.addEventListener("click", function () { actif = m.id; afficher(); });
+      zone.appendChild(b);
+    });
+    $("#pbi").style.width = Math.round(n / MODULES.length * 100) + "%";
+    $("#pb").setAttribute("aria-valuenow", String(n));
+  }
+
+  // Série de questions à choix unique avec correction immédiate
+  function serie(items, moduleId, titre, intro) {
+    var conteneur = el("div", {}, [el("h2", { text: titre, style: "font-size:1.8rem" })]);
+    if (intro) conteneur.appendChild(el("p", { class: "sub", text: intro }));
+    var repondues = 0, justes = 0;
+    var bilan = el("div", { class: "result", hidden: "" });
+
+    items.forEach(function (it) {
+      var bloc = el("div", { class: "qblock" }, [el("h3", { text: it.q })]);
+      var fb = el("div", { class: "fb", hidden: "" });
+      var boutons = it.o.map(function (txt, i) {
+        var b = el("button", { class: "opt", type: "button", text: txt });
+        b.addEventListener("click", function () {
+          boutons.forEach(function (x, j) {
+            x.disabled = true;
+            if (j === it.ok) x.classList.add("ok");
+          });
+          if (i !== it.ok) b.classList.add("ko"); else justes++;
+          fb.textContent = (i === it.ok ? "Bien vu. " : "Pas tout à fait. ") + it.fb;
+          fb.hidden = false;
+          repondues++;
+          if (repondues === items.length) {
+            bilan.hidden = false;
+            bilan.textContent = "Vous avez " + justes + " bonne" + (justes > 1 ? "s" : "") + " réponse" + (justes > 1 ? "s" : "") + " sur " + items.length + ". Module enregistré comme terminé.";
+            marquer(moduleId);
+          }
+        });
+        return b;
+      });
+      boutons.forEach(function (b) { bloc.appendChild(b); });
+      bloc.appendChild(fb);
+      conteneur.appendChild(bloc);
+    });
+    conteneur.appendChild(bilan);
+    return conteneur;
+  }
+
+  function moduleBilan() {
+    var rep = store.get("bilan", {});
+    var c = el("div", {}, [
+      el("h2", { text: "Votre bilan SCORE", style: "font-size:1.8rem" }),
+      el("p", { class: "sub", text: "Répondez pour votre structure. Chaque ressource en place compte un point d'actif, chaque exposition non traitée compte un point de passif." }),
+      el("p", { class: "muted small", text: "Extrait pédagogique en dix points. Ce n'est pas l'audit complet des 72 points de contrôle." })
+    ]);
+    var res = el("div", { class: "result", "aria-live": "polite" });
+
+    function calc() {
+      var a = 0, p = 0, rep10 = 0, bascules = [];
+      BILAN.forEach(function (it, i) {
+        if (rep[i] !== undefined) rep10++;
+        if (it.k === "actif" && rep[i] === "oui") a++;
+        if (it.k === "passif" && rep[i] === "oui") p++;
+        if (it.b && rep[i] === "non") bascules.push(it.t);
+      });
+      var s = a - p;
+      res.textContent = "";
+      if (rep10 < BILAN.length) { res.appendChild(el("p", { class: "muted", text: rep10 + " réponse(s) sur " + BILAN.length + ". Le bilan s'affiche à la dernière." })); return; }
+      var cls = s > 0 ? "pos" : s < 0 ? "neg" : "zero";
+      var verdict = s > 0 ? "Bilan positif : vous avez la capacité d'accélérer avec l'IA."
+        : s < 0 ? "Bilan négatif : vos expositions dépassent vos ressources. C'est une faillite de souveraineté numérique, pas une fatalité."
+        : "Bilan à l'équilibre : un seul geste suffit à le faire basculer.";
+      res.appendChild(el("p", { class: "big " + cls, text: (s > 0 ? "+" : "") + s }));
+      res.appendChild(el("p", { text: "Actif : " + a + " · Passif : " + p + ". " + verdict }));
+      if (bascules.length) {
+        res.appendChild(el("h3", { text: "Vos bascules à fort effet de levier" }));
+        res.appendChild(el("ul", { class: "lead-list" }, bascules.map(function (t) { return el("li", { text: t }); })));
+      }
+      res.appendChild(el("button", { class: "btn ghost no-print", type: "button", text: "Imprimer mon bilan", onclick: "window.print()" }));
+      marquer("bilan");
+    }
+
+    BILAN.forEach(function (it, i) {
+      var oui = el("button", { type: "button", text: "Oui", "aria-pressed": String(rep[i] === "oui") });
+      var non = el("button", { type: "button", text: "Non", "aria-pressed": String(rep[i] === "non") });
+      function choisir(v) {
+        rep[i] = v; store.set("bilan", rep);
+        oui.setAttribute("aria-pressed", String(v === "oui"));
+        non.setAttribute("aria-pressed", String(v === "non"));
+        calc();
+      }
+      oui.addEventListener("click", function () { choisir("oui"); });
+      non.addEventListener("click", function () { choisir("non"); });
+      c.appendChild(el("div", { class: "item" }, [
+        el("p", { class: "t" }, [
+          el("span", { class: "tag " + (it.k === "actif" ? "" : "r"), text: it.k }),
+          it.b ? el("span", { class: "tag l", text: "bascule" }) : document.createTextNode(""),
+          el("br"), document.createTextNode(it.t)
+        ]),
+        el("div", { class: "yn", role: "group", "aria-label": "Réponse" }, [oui, non])
+      ]));
+    });
+    c.appendChild(res);
+    calc();
+    return c;
+  }
+
+  function afficher() {
+    var p = $("#panneau");
+    p.textContent = "";
+    if (actif === "piliers") p.appendChild(serie(QCM, "piliers", "Les trois piliers NATAN", "Trois questions pour vérifier que vous avez la grille en tête."));
+    if (actif === "cas") p.appendChild(serie(CAS, "cas", "Le bilan dans l'assistant d'IA", "Un cas tiré du terrain. Choisissez, puis lisez la correction."));
+    if (actif === "bilan") p.appendChild(moduleBilan());
+    majTabs();
+  }
+
+  afficher();
+})();
+</script>
+</body>
+</html>

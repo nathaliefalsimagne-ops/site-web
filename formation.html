@@ -1,0 +1,86 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Fiche formation · NATAN Consulting</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+<a class="skip" href="#contenu">Aller au contenu</a>
+<header id="site-header"></header>
+<main id="contenu"><section><div class="wrap" id="fiche"></div></section></main>
+<footer id="site-footer"></footer>
+<script src="js/config.js"></script>
+<script src="js/catalogue.js"></script>
+<script src="js/main.js"></script>
+<script>
+  var id = new URLSearchParams(location.search).get("id");
+  var o = CATALOGUE.filter(function (x) { return x.id === id; })[0];
+  var zone = $("#fiche");
+
+  if (!o) {
+    document.title = "Offre introuvable · NATAN Consulting";
+    zone.appendChild(el("h1", { text: "Cette offre n'existe pas." }));
+    zone.appendChild(el("p", {}, [el("a", { class: "btn", href: "formations.html", text: "Retour au catalogue" })]));
+  } else {
+    document.title = o.titre + " · NATAN Consulting";
+    var t = Object.assign({}, TRANSPARENCE_DEFAUT, o.transparence || {});
+
+    function bloc(titre, contenu) {
+      return el("section", { style: "padding:40px 0 0" }, [el("h2", { text: titre, style: "font-size:1.8rem" })].concat(contenu));
+    }
+    function fait(libelle, valeur) { return el("div", { class: "fact" }, [el("b", { text: libelle }), document.createTextNode(valeur)]); }
+
+    zone.appendChild(el("p", { class: "crumb" }, [el("a", { href: "formations.html", text: "Catalogue" }), document.createTextNode(" / " + o.titre)]));
+    zone.appendChild(el("p", { class: "eyebrow", text: TYPES[o.type] }));
+    zone.appendChild(el("h1", { text: o.titre }));
+    zone.appendChild(el("p", { class: "c", style: "font-size:1.3rem;font-weight:700", text: o.sousTitre }));
+    zone.appendChild(el("p", { class: "sub", text: o.accroche }));
+    zone.appendChild(el("div", { class: "facts" }, [
+      fait("Durée", o.duree), fait("Niveau", o.niveau), fait("Modalité", o.modalite),
+      fait("Public", o.publics.map(function (p) { return PUBLICS[p]; }).join(", "))
+    ]));
+
+    zone.appendChild(bloc("Ce que vous saurez faire", [
+      el("ul", { class: "lead-list" }, o.objectifs.map(function (x) { return el("li", { text: x }); }))
+    ]));
+
+    if (o.programme.length) {
+      zone.appendChild(bloc("Le déroulé", [
+        el("ol", { class: "prog" }, o.programme.map(function (p) {
+          return el("li", {}, [el("strong", { text: p.titre }), document.createTextNode(p.detail)]);
+        }))
+      ]));
+    }
+
+    zone.appendChild(bloc("Ce que vous repartez avec", [
+      el("ul", { class: "lead-list" }, o.livrables.map(function (x) { return el("li", { text: x }); }))
+    ]));
+
+    var rep = [
+      ["Qui a conçu le contenu ?", t.conception],
+      ["Qui anime ?", t.animation],
+      ["Qui vous suit, et comment ?", t.suivi],
+      ["Quelles compétences, concrètement ?", o.objectifs.join(". ") + "."],
+      ["Quels résultats ?", t.resultats],
+      ["Qui répond si ça ne tient pas ses promesses ?", t.responsable]
+    ];
+    zone.appendChild(bloc("Fiche de transparence", [
+      el("p", { class: "muted", text: "Les six réponses que tout acheteur de formation devrait obtenir avant de signer." }),
+      el("div", { class: "transp" }, rep.map(function (r) {
+        return el("div", { class: "q" }, [el("h3", { text: r[0] }), el("p", { text: r[1] })]);
+      }))
+    ]));
+
+    var cta = o.lien
+      ? el("a", { class: "btn", href: o.lien, text: o.lienLibelle })
+      : el("a", { class: "btn", href: "index.html#contact", text: "Échanger avec Nathalie" });
+    zone.appendChild(el("div", { style: "padding-top:40px" }, [cta]));
+  }
+</script>
+</body>
+</html>
